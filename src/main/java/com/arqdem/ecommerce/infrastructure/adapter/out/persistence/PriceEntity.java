@@ -1,10 +1,6 @@
 package com.arqdem.ecommerce.infrastructure.adapter.out.persistence;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,10 +10,6 @@ import java.time.LocalDateTime;
         name = "prices",
         indexes = @Index(name = "idx_prices_lookup", columnList = "product_id, brand_id, start_date, end_date")
 )
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class PriceEntity {
 
     @Id
@@ -47,4 +39,29 @@ public class PriceEntity {
 
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
+
+    protected PriceEntity() {}
+
+    public PriceEntity(Long id, Integer brandId, LocalDateTime startDate, LocalDateTime endDate,
+                       Integer priceList, Long productId, Integer priority, BigDecimal price, String currency) {
+        this.id = id;
+        this.brandId = brandId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.priceList = priceList;
+        this.productId = productId;
+        this.priority = priority;
+        this.price = price;
+        this.currency = currency;
+    }
+
+    public Long getId() { return id; }
+    public Integer getBrandId() { return brandId; }
+    public LocalDateTime getStartDate() { return startDate; }
+    public LocalDateTime getEndDate() { return endDate; }
+    public Integer getPriceList() { return priceList; }
+    public Long getProductId() { return productId; }
+    public Integer getPriority() { return priority; }
+    public BigDecimal getPrice() { return price; }
+    public String getCurrency() { return currency; }
 }

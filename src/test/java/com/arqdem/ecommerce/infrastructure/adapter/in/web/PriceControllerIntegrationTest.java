@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -38,7 +39,10 @@ class PriceControllerIntegrationTest {
                 .andExpect(jsonPath("$.productId").value(35455))
                 .andExpect(jsonPath("$.brandId").value(1))
                 .andExpect(jsonPath("$.priceList").value(1))
-                .andExpect(jsonPath("$.price").value(35.50));
+                .andExpect(jsonPath("$.startDate").value("2020-06-14T00:00:00"))
+                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"))
+                .andExpect(jsonPath("$.price").value(35.50))
+                .andExpect(jsonPath("$.currency").value("EUR"));
     }
 
     @Test
@@ -53,7 +57,10 @@ class PriceControllerIntegrationTest {
                 .andExpect(jsonPath("$.productId").value(35455))
                 .andExpect(jsonPath("$.brandId").value(1))
                 .andExpect(jsonPath("$.priceList").value(2))
-                .andExpect(jsonPath("$.price").value(25.45));
+                .andExpect(jsonPath("$.startDate").value("2020-06-14T15:00:00"))
+                .andExpect(jsonPath("$.endDate").value("2020-06-14T18:30:00"))
+                .andExpect(jsonPath("$.price").value(25.45))
+                .andExpect(jsonPath("$.currency").value("EUR"));
     }
 
     @Test
@@ -68,7 +75,10 @@ class PriceControllerIntegrationTest {
                 .andExpect(jsonPath("$.productId").value(35455))
                 .andExpect(jsonPath("$.brandId").value(1))
                 .andExpect(jsonPath("$.priceList").value(1))
-                .andExpect(jsonPath("$.price").value(35.50));
+                .andExpect(jsonPath("$.startDate").value("2020-06-14T00:00:00"))
+                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"))
+                .andExpect(jsonPath("$.price").value(35.50))
+                .andExpect(jsonPath("$.currency").value("EUR"));
     }
 
     @Test
@@ -83,7 +93,10 @@ class PriceControllerIntegrationTest {
                 .andExpect(jsonPath("$.productId").value(35455))
                 .andExpect(jsonPath("$.brandId").value(1))
                 .andExpect(jsonPath("$.priceList").value(3))
-                .andExpect(jsonPath("$.price").value(30.50));
+                .andExpect(jsonPath("$.startDate").value("2020-06-15T00:00:00"))
+                .andExpect(jsonPath("$.endDate").value("2020-06-15T11:00:00"))
+                .andExpect(jsonPath("$.price").value(30.50))
+                .andExpect(jsonPath("$.currency").value("EUR"));
     }
 
     @Test
@@ -98,27 +111,46 @@ class PriceControllerIntegrationTest {
                 .andExpect(jsonPath("$.productId").value(35455))
                 .andExpect(jsonPath("$.brandId").value(1))
                 .andExpect(jsonPath("$.priceList").value(4))
-                .andExpect(jsonPath("$.price").value(38.95));
+                .andExpect(jsonPath("$.startDate").value("2020-06-15T16:00:00"))
+                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"))
+                .andExpect(jsonPath("$.price").value(38.95))
+                .andExpect(jsonPath("$.currency").value("EUR"));
     }
 
     @Test
-    @DisplayName("Returns 404 when no price exists for the given parameters")
-    void unknownProduct_returns404() throws Exception {
+    @DisplayName("Returns 404 with problem detail when no price exists for the given parameters")
+    void unknownProduct_returns404WithDetail() throws Exception {
         mockMvc.perform(get(URL)
                         .param("applicationDate", "2020-06-14T10:00:00")
                         .param("productId", "99999")
                         .param("brandId", BRAND_ID)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value(containsString("99999")));
     }
 
     @Test
     @DisplayName("Returns 400 when a required parameter is missing")
-    void missingParameter_returns400() throws Exception {
+    void missingParameter_returns400WithDetail() throws Exception {
         mockMvc.perform(get(URL)
                         .param("productId", PRODUCT_ID)
                         .param("brandId", BRAND_ID)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value(containsString("applicationDate")));
+    }
+
+    @Test
+    @DisplayName("Returns 400 when a parameter has the wrong type")
+    void wrongParameterType_returns400() throws Exception {
+        mockMvc.perform(get(URL)
+                        .param("applicationDate", "2020-06-14T10:00:00")
+                        .param("productId", "not-a-number")
+                        .param("brandId", BRAND_ID)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
     }
 }
